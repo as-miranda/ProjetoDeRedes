@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Quantificação de Materiais - Rede Local</title>
+   <style>
+        /* Variáveis de Tema (Design System) */
+        :root {
+            --primary-color: #2563eb;       
+            --primary-hover: #1d4ed8;       
+            --bg-color: #f8fafc;            
+            --surface-color: #ffffff;       
+            --text-main: #334155;           
+            --text-muted: #64748b;          
+            --border-color: #e2e8f0;        
+            --input-focus: #bfdbfe;         
+            --border-radius: 8px;           
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Reset e Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #firstScreen, #secondScreen {
+            background-color: var(--surface-color);
+            width: 100%;
+            max-width: 800px;
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.4s ease-out forwards;
+            margin-top: 20px;
+        }
+
+        h1 { font-size: 1.5rem; color: var(--primary-color); text-align: center; margin-bottom: 24px; line-height: 1.3; }
+        h2 { font-size: 1.25rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        h3 { margin: 24px 0 16px; color: var(--primary-color); font-size: 1.1rem; }
+
+        button {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            width: 100%;
+            display: block;
+            margin-top: 10px;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+        button:active { transform: scale(0.98); }
+        .btn-secondary { background-color: var(--text-muted); margin-bottom: 15px; }
+        .btn-secondary:hover { background-color: #475569; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color); }
+        .tablinks {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-radius: 8px 8px 0 0;
+            padding: 12px 20px;
+            font-weight: 500;
+            margin: 0;
+            width: auto;
+            flex: 1;
+            text-align: center;
+            margin-bottom: -2px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .tablinks:hover { background-color: #f1f5f9; color: var(--primary-color); }
+        .tablinks.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); font-weight: 700; }
+        .tabcontent { animation: fadeIn 0.3s ease-out; }
+
+        label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 0.9rem; margin-bottom: 16px; }
+        label:has(input[type="checkbox"]) { flex-direction: row; align-items: center; gap: 10px; font-weight: normal; cursor: pointer; margin-bottom: 12px; }
+
+        input[type="number"], input[type="text"], select {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+            border-radius: 6px; font-size: 1rem; font-family: inherit; color: var(--text-main);
+            background-color: #fff; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
+            outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--input-focus);
+        }
+
+        .input-error { border: 2px solid #ef4444 !important; background-color: #fef2f2 !important; box-shadow: none !important; }
+        .alert-box {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
+            padding: 16px 24px; border-radius: 8px; font-weight: 600; display: none;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 90%; max-width: 500px; text-align: center;
+        }
+        .alert-error { background-color: #fee2e2; border: 1px solid #f87171; color: #b91c1c; }
+        .alert-success { background-color: #dcfce3; border: 1px solid #4ade80; color: #166534; }
+
+        fieldset { border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 16px; margin-bottom: 24px; background-color: #f8fafc; }
+        legend { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; padding: 0 8px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 30px; border-radius: var(--border-radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 16px; border: 1px solid var(--border-color); text-align: left; font-size: 0.90rem; }
+        
+        .table-header-main { background-color: #334155; color: white; text-align: center; font-size: 1.1rem; letter-spacing: 1px; }
+        .table-header-total { background-color: #2563eb; color: white; text-align: center; font-size: 1.1rem; letter-spacing: 1px; }
+        .section-title { background-color: #f1f5f9; font-weight: 700; color: #1e293b; }
+        
+        tr:nth-child(even):not(:has(th)) { background-color: #f8fafc; }
+        tr:hover:not(:has(th)) { background-color: #f0f9ff; }
+
+        .btn-export { background-color: #10b981; margin-top: 16px; }
+        .btn-export:hover { background-color: #059669; }
+
+        @media (min-width: 640px) {
+            .span-2 { grid-column: span 2; }
+            #mhTab, #bkTab { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; align-items: start; }
+        }
+        @media (max-width: 480px) {
+            .tabs { flex-direction: column; border-bottom: none; }
+            .tablinks { border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 8px; }
+            .tablinks.active { border: 1px solid var(--primary-color); }
+        }
+   </style>
+</head>
+
+<body>
+   <div id="custom-alert" class="alert-box"></div>
+
+   <div id="firstScreen">
+       <h1>Quantificação de Materiais - Cabeamento Estruturado</h1>
+       <button id="btnMH">Malha Horizontal</button>
+       <button id="btnBO">Backbone Óptico</button>
+       <button id="btnBoth">Ambos</button>
+   </div>
+
+   <div id="secondScreen" style="display:none;">
+       <button id="btnBack" class="btn-secondary">⬅ Voltar para Seleção</button>
+
+       <div class="tabs">
+           <button class="tablinks" data-tab="mhTab" id="tabMH">Malha Horizontal</button>
+           <button class="tablinks" data-tab="bkTab" id="tabBK">Backbone Óptico</button>
+       </div>
+       
+       <div id="mhTab" class="tabcontent" style="display:none;">
+           <h2 class="span-2">Dados para Malha Horizontal</h2>
+           <label>Número de pavimentos: <input type="number" id="mhPavimentos" min="1" required></label>
+           <label>Medida básica (m) de malha por ponto: <input type="number" id="mhMedida" min="1" max="90" required></label>
+           <label for="mhCategoria">Categoria do Cabo UTP:</label>
+           <select id="mhCategoria">
+               <option value="6">Cat6 (250 MHz)</option>
+               <option value="5e">Cat5e (100 MHz)</option>
+               <option value="6a">Cat6a (500 MHz)</option>
+           </select>
+           
+           <h3 class="span-2">Distribuição dos Pontos de Telecom (Por Pavimento)</h3>
+           <label>Pontos de Dados: <input type="number" id="mhPontosDados" min="0" value="0" required></label>
+           <label>Pontos de VoIP: <input type="number" id="mhPontosVoip" min="0" value="0" required></label>
+           <label>Pontos de CFTV: <input type="number" id="mhPontosCftv" min="0" value="0" required></label>
+
+           <h3 class="span-2">Sala de Equipamentos / Telecom (SEQ/SET) - Ativos</h3>
+           <label>Espaço ocupado por DVR/NVR (em U): <input type="number" id="seqDvr" min="0" value="2"></label>
+           <label>Espaço para Exaustores/Ventilação (em U): <input type="number" id="seqExaustor" min="0" value="2"></label>
+           <label>Espaço para Bandejas Fixas (em U): <input type="number" id="seqBandeja" min="0" value="4"></label>
+           
+           <fieldset class="span-2">
+               <legend>Opções do Relatório</legend>
+               <label><input type="checkbox" id="mhMiscelanea" checked> Incluir itens de Miscelânea e Etiquetas</label>
+           </fieldset>
+           <button id="genMH" class="span-2">Gerar Planilha MH</button>
+       </div>
+
+       <div id="bkTab" class="tabcontent" style="display:none;">
+           <h2 class="span-2">Dados para Backbone Óptico</h2>
+           <label>Número de pavimentos: <input type="number" id="bkPavimentos" min="1" required></label>
+           <label>Fibras disponíveis por link: <input type="number" id="bkFibras" min="2" step="2" value="6" required></label>
+           <label>Medida básica (m) de backbone (por lance): <input type="number" id="bkMedida" min="1" required></label>
+           
+           <label>Configuração do Backbone:
+               <select id="bkTipoRede">
+                   <option value="Secundario">Backbone Secundário (SEQ ➔ SETs)</option>
+                   <option value="Primario">Backbone Primário (Campus/Edifícios)</option>
+               </select>
+           </label>
+           
+           <label>Tipo de fibra:
+               <select id="bkTipo">
+                   <option value="MM">Multimodo (MM)</option>
+                   <option value="SM">Monomodo (SM)</option>
+               </select>
+           </label>
+
+           <label>Característica do Cabo:
+               <select id="bkCaracteristica">
+                   <option value="Tight Buffer">Tight Buffer (Uso Interno)</option>
+                   <option value="Loose Tube">Loose Tube (Uso Externo/Geleiado)</option>
+               </select>
+           </label>
+
+           <label>Padrão de Transmissão:
+               <select id="bkPadrao">
+                   <!-- Preenchido dinamicamente -->
+               </select>
+           </label>
+
+           <button id="genBK" class="span-2">Gerar Planilha Backbone</button>
+       </div>
+
+       <div id="resultsMH" style="display:none;">
+           <h3>Planilha de Malha Horizontal e SEQ/SET</h3>
+           <div id="containerTableMH" style="overflow-x:auto;"></div>
+           <button id="exportMH" class="btn-export">Exportar MH (.xls)</button>
+       </div>
+       
+       <div id="resultsBK" style="display:none;">
+           <h3>Planilha de Backbone Óptico</h3>
+           <div id="containerTableBK" style="overflow-x:auto;"></div>
+           <button id="exportBK" class="btn-export">Exportar Backbone (.xls)</button>
+       </div>
+   </div>
+
+   <script>
+        // --- UTILITÁRIOS E ALERTAS ---
+        let alertTimeout;
+        const alertDiv = document.getElementById('custom-alert');
+
+        function showCustomAlert(message, type = 'error') {
+            if (alertDiv) {
+                alertDiv.textContent = message;
+                alertDiv.className = `alert-box ${type === 'error' ? 'alert-error' : 'alert-success'}`;
+                alertDiv.style.display = 'block';
+                clearTimeout(alertTimeout);
+                alertTimeout = setTimeout(hideCustomAlert, 6000);
+            }
+        }
+
+        function hideCustomAlert() { if (alertDiv) alertDiv.style.display = 'none'; }
+
+        function markError(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('input-error');
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            hideCustomAlert();
+        }
+
+        function getNumericInput(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const val = el.value.trim();
+            if (val === '') return 'EMPTY';
+            const num = Number(val);
+            return isNaN(num) ? 'NAN' : num;
+        }
+
+        // --- VALIDAÇÃO MALHA HORIZONTAL ---
+        function validateMH() {
+            clearErrors();
+            const fields = ['mhPavimentos', 'mhMedida', 'mhPontosDados', 'mhPontosVoip', 'mhPontosCftv'];
+            const vals = {};
+            let hasFormatError = false;
+
+            fields.forEach(id => {
+                const val = getNumericInput(id);
+                vals[id] = val;
+                if (val === 'EMPTY' || val === 'NAN') { markError(id); hasFormatError = true; }
+            });
+
+            if (hasFormatError) {
+                showCustomAlert("Preencha todos os campos corretamente com números válidos.");
+                return null;
+            }
+
+            let hasLogicError = false;
+            if (vals.mhPavimentos <= 0) { markError('mhPavimentos'); hasLogicError = true; }
+            if (vals.mhMedida <= 0) { markError('mhMedida'); hasLogicError = true; }
+            if (vals.mhPontosDados < 0) { markError('mhPontosDados'); hasLogicError = true; }
+            if (vals.mhPontosVoip < 0) { markError('mhPontosVoip'); hasLogicError = true; }
+            if (vals.mhPontosCftv < 0) { markError('mhPontosCftv'); hasLogicError = true; }
+
+            if (hasLogicError) {
+                showCustomAlert("Valores não podem ser negativos. Pavimentos e medidas devem ser maiores que zero.");
+                return null;
+            }
+
+            if (vals.mhMedida > 90) {
+                markError('mhMedida');
+                showCustomAlert("Atenção à Norma EIA/TIA-568: O lance horizontal de cabo UTP não deve exceder 90 metros.");
+                return null;
+            }
+
+            if ((vals.mhPontosDados + vals.mhPontosVoip + vals.mhPontosCftv) === 0) {
+                markError('mhPontosDados'); markError('mhPontosVoip'); markError('mhPontosCftv');
+                showCustomAlert("A soma dos pontos (Dados, VoIP, CFTV) deve ser maior que zero.");
+                return null;
+            }
+            return vals; 
+        }
+
+        // --- NAVEGAÇÃO E EVENTOS ---
+        const firstScreen = document.getElementById('firstScreen');
+        const secondScreen = document.getElementById('secondScreen');
+        const tabMH = document.getElementById('tabMH');
+        const tabBK = document.getElementById('tabBK');
+
+        document.getElementById('btnMH').addEventListener('click', () => selectOption('mh'));
+        document.getElementById('btnBO').addEventListener('click', () => selectOption('bk'));
+        document.getElementById('btnBoth').addEventListener('click', () => selectOption('both'));
+
+        document.getElementById('btnBack').addEventListener('click', () => {
+            secondScreen.style.display = 'none';
+            firstScreen.style.display = 'block';
+            document.getElementById('resultsMH').style.display = 'none';
+            document.getElementById('resultsBK').style.display = 'none';
+            clearErrors();
+        });
+
+        tabMH.addEventListener('click', () => openTab('mhTab', tabMH));
+        tabBK.addEventListener('click', () => openTab('bkTab', tabBK));
+
+        document.getElementById('genMH').addEventListener('click', generateMH);
+        document.getElementById('genBK').addEventListener('click', generateBK);
+
+        document.getElementById('exportMH').addEventListener('click', () => exportTable('containerTableMH', 'Malha_Horizontal.xls'));
+        document.getElementById('exportBK').addEventListener('click', () => exportTable('containerTableBK', 'Backbone_Optico.xls'));
+
+        document.getElementById('bkTipo').addEventListener('change', function() {
+            const padrao = document.getElementById('bkPadrao');
+            padrao.innerHTML = '';
+            if (this.value === 'MM') {
+                padrao.innerHTML = '<option value="1000Base-SX">1000Base-SX</option><option value="10GBase-SR">10GBase-SR</option>';
+            } else {
+                padrao.innerHTML = '<option value="1000Base-LX">1000Base-LX</option><option value="10GBase-LR">10GBase-LR</option><option value="10GBase-ER">10GBase-ER</option>';
+            }
+        });
+        document.getElementById('bkTipo').dispatchEvent(new Event('change'));
+
+        function selectOption(option) {
+            firstScreen.style.display = 'none';
+            secondScreen.style.display = 'block';
+            if (option === 'mh') {
+                tabMH.style.display = 'inline-block'; tabBK.style.display = 'none'; openTab('mhTab', tabMH);
+            } else if (option === 'bk') {
+                tabMH.style.display = 'none'; tabBK.style.display = 'inline-block'; openTab('bkTab', tabBK);
+            } else {
+                tabMH.style.display = 'inline-block'; tabBK.style.display = 'inline-block'; openTab('mhTab', tabMH);
+            }
+        }
+
+        function openTab(tabId, tabButton) {
+            document.querySelectorAll('.tabcontent').forEach(div => div.style.display = 'none');
+            document.querySelectorAll('.tablinks').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).style.display = 'block';
+            tabButton.classList.add('active');
+        }
+
+        // --- CÁLCULO DE RACK (Regra dos 150% do professor e tamanhos comerciais) ---
+        function getCommercialRackSize(neededU) {
+            const req = Math.ceil(neededU * 1.5);
+            if (req <= 12) {
+                return Math.ceil(req / 2) * 2; // Tamanhos: 6, 8, 10, 12
+            } else {
+                return Math.ceil(req / 4) * 4; // Tamanhos: 16, 20, 24, 28, 32, 36, 40, 44, 48...
+            }
+        }
+
+        // --- GERAÇÃO DA MALHA HORIZONTAL ---
+        function generateMH() {
+            const vals = validateMH();
+            if (!vals) return;
+
+            const categoria = document.getElementById('mhCategoria').value;
+            const seqDvr = getNumericInput('seqDvr') || 0;
+            const seqExaustor = getNumericInput('seqExaustor') || 0;
+            const seqBandeja = getNumericInput('seqBandeja') || 0;
+            const incluirMiscelanea = document.getElementById('mhMiscelanea').checked;
+
+            // Elementos base por pavimento (2 Tomadas por Ponto de Telecom)
+            const pDados = vals.mhPontosDados;
+            const pVoip = vals.mhPontosVoip;
+            const pCftv = vals.mhPontosCftv;
+            
+            const tomadasDados = pDados * 2;
+            const tomadasVoip = pVoip * 2;
+            const tomadasCftv = pCftv * 2;
+            const totalTomadasPorPav = tomadasDados + tomadasVoip + tomadasCftv;
+            const totalPontosPorPav = pDados + pVoip + pCftv;
+
+            let htmlContent = "";
+
+            // Tabela por Pavimento (Apenas Área de Trabalho e Cabeamento do Andar)
+            for (let i = 1; i <= vals.mhPavimentos; i++) {
+                const caixasPorPav = Math.ceil((totalTomadasPorPav * vals.mhMedida) / 305);
+                htmlContent += `
+                    <table>
+                        <tr><th colspan="4" class="table-header-main">PAVIMENTO ${i}</th></tr>
+                        <tr><th>ITEM</th><th>DESCRIÇÃO DO MATERIAL</th><th>UNID.</th><th>QTDE</th></tr>
+                        
+                        <tr><td colspan="4" class="section-title">1.0 ÁREA DE TRABALHO</td></tr>
+                        <tr><td>1.a</td><td>Tomada RJ-45 Fêmea (Cat ${categoria})</td><td>Unid.</td><td>${totalTomadasPorPav}</td></tr>
+                        <tr><td>1.b</td><td>Espelho de conexão (2x4 ou 4x4)</td><td>Unid.</td><td>${totalPontosPorPav}</td></tr>
+                        <tr><td>1.c</td><td>Patch Cord (Cat ${categoria}, 3m) - Azul (Dados/VoIP)</td><td>Unid.</td><td>${tomadasDados + tomadasVoip}</td></tr>
+                        ${tomadasCftv > 0 ? `<tr><td>1.d</td><td>Patch Cord (Cat ${categoria}, 3m) - Branco (CFTV)</td><td>Unid.</td><td>${tomadasCftv}</td></tr>` : ''}
+
+                        <tr><td colspan="4" class="section-title">2.0 CABEAMENTO HORIZONTAL</td></tr>
+                        <tr><td>2.a</td><td>Cabo UTP rígido (Cat ${categoria})</td><td>Cx's</td><td>${caixasPorPav}</td></tr>
+                    </table>
+                `;
+            }
+
+            // --- TOTALIZAÇÃO GERAL (Prédio Completo + SEQ/SET + Miscelânea) ---
+            const T_Tomadas = totalTomadasPorPav * vals.mhPavimentos;
+            const T_Pontos = totalPontosPorPav * vals.mhPavimentos;
+            const T_Caixas = Math.ceil((T_Tomadas * vals.mhMedida) / 305);
+            
+            const sw = Math.ceil(T_Tomadas / 24);
+            const pp = Math.ceil(T_Tomadas / 24);
+            const org = sw + pp;
+            
+            // Ativos centralizados para o prédio
+            const uOcupado = sw + pp + org + seqDvr + seqExaustor + seqBandeja;
+            let rackU = getCommercialRackSize(uOcupado);
+            let qtdRacks = 1;
+            
+            if (Math.ceil(uOcupado * 1.5) > 48) { // Se passar de 48U, divide em múltiplos racks
+                qtdRacks = Math.ceil((uOcupado * 1.5) / 48);
+                rackU = 48; 
+            }
+            const reguas = (rackU * qtdRacks) - uOcupado;
+
+            htmlContent += `
+                <table>
+                    <tr><th colspan="4" class="table-header-total">TOTALIZAÇÃO GERAL (${vals.mhPavimentos} PAVIMENTOS)</th></tr>
+                    <tr><th>ITEM</th><th>DESCRIÇÃO DO MATERIAL</th><th>UNID.</th><th>QTDE</th></tr>
+                    
+                    <tr><td colspan="4" class="section-title">1.0 ÁREA DE TRABALHO (ACUMULADO)</td></tr>
+                    <tr><td>1.a</td><td>Tomada RJ-45 Fêmea (Cat ${categoria})</td><td>Unid.</td><td>${T_Tomadas}</td></tr>
+                    <tr><td>1.b</td><td>Espelho de conexão (2x4 ou 4x4)</td><td>Unid.</td><td>${T_Pontos}</td></tr>
+                    <tr><td>1.c</td><td>Patch Cord (Cat ${categoria}, 3m) - Azul (Dados/VoIP)</td><td>Unid.</td><td>${(tomadasDados + tomadasVoip) * vals.mhPavimentos}</td></tr>
+                    ${tomadasCftv > 0 ? `<tr><td>1.d</td><td>Patch Cord (Cat ${categoria}, 3m) - Branco (CFTV)</td><td>Unid.</td><td>${tomadasCftv * vals.mhPavimentos}</td></tr>` : ''}
+
+                    <tr><td colspan="4" class="section-title">2.0 CABEAMENTO HORIZONTAL (ACUMULADO)</td></tr>
+                    <tr><td>2.a</td><td>Cabo UTP rígido (Cat ${categoria})</td><td>Cx's</td><td>${T_Caixas}</td></tr>
+
+                    <tr><td colspan="4" class="section-title">3.0 SALA DE EQUIPAMENTOS / TELECOM (SEQ/SET)</td></tr>
+                    <tr><td>3.a</td><td>Patch Panel (Cat ${categoria}), 24 portas, 1U</td><td>Unid.</td><td>${pp}</td></tr>
+                    <tr><td>3.b</td><td>Organizador frontal de cabo 19" 1U</td><td>Unid.</td><td>${org}</td></tr>
+                    <tr><td>3.c</td><td>Switch de Rede 24 Portas</td><td>Unid.</td><td>${sw}</td></tr>
+                    
+                    ${tomadasDados > 0 ? `<tr><td>3.d</td><td>Patch Cable (Cat ${categoria}, 2m) - Azul (Dados)</td><td>Unid.</td><td>${tomadasDados * vals.mhPavimentos}</td></tr>` : ''}
+                    ${tomadasVoip > 0 ? `<tr><td>3.e</td><td>Patch Cable (Cat ${categoria}, 2m) - Amarelo (VoIP)</td><td>Unid.</td><td>${tomadasVoip * vals.mhPavimentos}</td></tr>` : ''}
+                    ${tomadasCftv > 0 ? `<tr><td>3.f</td><td>Patch Cable (Cat ${categoria}, 2m) - Vermelho (CFTV)</td><td>Unid.</td><td>${tomadasCftv * vals.mhPavimentos}</td></tr>` : ''}
+                    
+                    <tr><td>3.g</td><td>Rack Fechado 19" (${rackU}U)</td><td>Unid.</td><td>${qtdRacks}</td></tr>
+                    ${seqBandeja > 0 ? `<tr><td>3.h</td><td>Bandeja fixa 19"</td><td>Unid.</td><td>1</td></tr>` : ''}
+                    ${seqDvr > 0 ? `<tr><td>3.i</td><td>DVR/NVR (${seqDvr}U)</td><td>Unid.</td><td>1</td></tr>` : ''}
+                    ${seqExaustor > 0 ? `<tr><td>3.j</td><td>Exaustor para Rack 19"</td><td>Unid.</td><td>1</td></tr>` : ''}
+                    <tr><td>3.k</td><td>Kit Porca Gaiola (10 unid.)</td><td>Kit</td><td>${Math.ceil((uOcupado * 4) / 10)}</td></tr>
+                    ${reguas > 0 ? `<tr><td>3.l</td><td>Régua de Fechamento / Painel Cego 1U</td><td>Unid.</td><td>${reguas}</td></tr>` : ''}
+            `;
+
+            if (incluirMiscelanea) {
+                htmlContent += `
+                    <tr><td colspan="4" class="section-title">4.0 ETIQUETAS E MISCELÂNEA</td></tr>
+                    <tr><td>4.a</td><td>Etiquetas para Cabos UTP</td><td>Unid.</td><td>${T_Tomadas * 2}</td></tr>
+                    <tr><td>4.b</td><td>Etiquetas para Patch Cables</td><td>Unid.</td><td>${T_Tomadas * 2}</td></tr>
+                    <tr><td>4.c</td><td>Etiquetas para Tomadas</td><td>Unid.</td><td>${T_Tomadas}</td></tr>
+                    <tr><td>4.d</td><td>Etiquetas para Espelhos</td><td>Unid.</td><td>${T_Pontos}</td></tr>
+                    <tr><td>4.e</td><td>Etiquetas para Switches</td><td>Unid.</td><td>${sw}</td></tr>
+                    <tr><td>4.f</td><td>Etiquetas para Portas dos switches</td><td>Unid.</td><td>${T_Tomadas}</td></tr>
+                    <tr><td>4.g</td><td>Etiquetas para Patch Panels</td><td>Unid.</td><td>${pp}</td></tr>
+                    <tr><td>4.h</td><td>Etiquetas para Portas dos patch panels</td><td>Unid.</td><td>${T_Tomadas}</td></tr>
+                    <tr><td>4.i</td><td>Abraçadeira de velcro</td><td>Rolo(s)</td><td>${Math.ceil((T_Tomadas * 0.05)/10)}</td></tr>
+                `;
+            }
+            
+            htmlContent += `</table>`;
+
+            document.getElementById('containerTableMH').innerHTML = htmlContent;
+            document.getElementById('resultsMH').style.display = 'block';
+            showCustomAlert("Planilha de Malha Horizontal estruturada com sucesso!", "success");
+        }
+
+        // --- GERAÇÃO DO BACKBONE ÓPTICO (Lógica Oficial) ---
+        function generateBK() {
+            clearErrors();
+            const pav = getNumericInput('bkPavimentos');
+            const fibras = getNumericInput('bkFibras');
+            const medida = getNumericInput('bkMedida');
+
+            if (pav === 'EMPTY' || fibras === 'EMPTY' || medida === 'EMPTY' || pav === 'NAN' || fibras === 'NAN' || medida === 'NAN') {
+                showCustomAlert("Preencha todos os campos numéricos do Backbone corretamente."); return;
+            }
+            if (pav <= 0 || fibras <= 0 || medida <= 0) {
+                showCustomAlert("Valores devem ser maiores que zero no Backbone."); return;
+            }
+
+            const tipoFibra = document.getElementById('bkTipo').value;
+            const caracteristica = document.getElementById('bkCaracteristica').value;
+            const padrao = document.getElementById('bkPadrao').value;
+            const tipoRede = document.getElementById('bkTipoRede').value;
+
+            const metragamFibra = Math.ceil(pav * medida * 1.2); // 20% de sobra técnica
+            const nomeCabo = `Cabo Óptico FOMMIG ${tipoFibra} (${caracteristica}) - ${fibras} fibras`;
+
+            let htmlContent = `<table>
+                <tr><th colspan="4" class="table-header-main">ESPECIFICAÇÕES TÉCNICAS DO BACKBONE</th></tr>
+                <tr><td>Padrão Operacional</td><td colspan="3">${padrao}</td></tr>
+                <tr><td>Tipo de Backbone</td><td colspan="3">${tipoRede.toUpperCase()}</td></tr>
+            </table>`;
+
+            htmlContent += `<table>`;
+            htmlContent += `<tr><th>ITEM</th><th>DESCRIÇÃO DO MATERIAL - BACKBONE ÓPTICO</th><th>UNID.</th><th>QTDE</th></tr>`;
+
+            // 1.0 SEQ
+            const totalFibrasSEQ = pav * fibras;
+            const numDiosSEQ = Math.ceil(totalFibrasSEQ / 24);
+            const numCaixasEmenda = Math.ceil(totalFibrasSEQ / 12);
+            
+            htmlContent += `<tr><td colspan="4" class="section-title">1.0 SEQ (SALA DE EQUIPAMENTOS CENTRAL)</td></tr>`;
+            htmlContent += `<tr><td>1.a</td><td>${nomeCabo}</td><td>m</td><td>${metragamFibra}</td></tr>`;
+            htmlContent += `<tr><td>1.b</td><td>DIO (Distribuidor Interno Óptico) 19" - 24 portas</td><td>Unid.</td><td>${numDiosSEQ}</td></tr>`;
+            htmlContent += `<tr><td>1.c</td><td>Caixa de Emenda Óptica</td><td>Unid.</td><td>${numCaixasEmenda}</td></tr>`;
+            htmlContent += `<tr><td>1.d</td><td>Acopladores Ópticos LC (Duplos)</td><td>Unid.</td><td>${totalFibrasSEQ / 2}</td></tr>`;
+            htmlContent += `<tr><td>1.e</td><td>Pigtails Simples LC (${tipoFibra})</td><td>Unid.</td><td>${totalFibrasSEQ}</td></tr>`;
+            htmlContent += `<tr><td>1.f</td><td>Cordões Ópticos Simples LC (${tipoFibra})</td><td>Unid.</td><td>${totalFibrasSEQ}</td></tr>`;
+
+            // 2.0 SET
+            htmlContent += `<tr><td colspan="4" class="section-title">2.0 SET (DISTRIBUIÇÃO NOS PAVIMENTOS) - TOTAL ACUMULADO</td></tr>`;
+            htmlContent += `<tr><td>2.a</td><td>Terminador Óptico (TO) para ${fibras} fibras</td><td>Unid.</td><td>${pav}</td></tr>`;
+            htmlContent += `<tr><td>2.b</td><td>Pigtails Duplos LC (${tipoFibra})</td><td>Unid.</td><td>${(fibras / 2) * pav}</td></tr>`;
+
+            htmlContent += `</table>`;
+
+            document.getElementById('containerTableBK').innerHTML = htmlContent;
+            document.getElementById('resultsBK').style.display = 'block';
+            showCustomAlert("Planilha de Backbone estruturada com sucesso!", "success");
+        }
+
+        function exportTable(tableContainerId, filename) {
+            const tableContainer = document.getElementById(tableContainerId);
+            const htmlTemplate = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head><meta charset="utf-8"></head>
+                <body>${tableContainer.innerHTML}</body>
+                </html>
+            `;
+            const blob = new Blob(['\ufeff' + htmlTemplate], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+   </script>
+</body>
+</html>
